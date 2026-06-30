@@ -10,17 +10,19 @@ import java.io.FileInputStream
 import java.io.IOException
 import java.util.logging.Level
 
-class ModuleLoader(private val plugin: JavaPlugin, private val moduleDir: File) {
+class ModuleLoader(
+    private val plugin: JavaPlugin,
+    private val moduleDir: File,
+    private val configManager: ConfigManager
+) {
 
     private val registry = mutableMapOf<String, ModuleInfo>()
     private val nameIndex = mutableMapOf<String, MutableList<ModuleInfo>>()
     private val providesMap = mutableMapOf<String, ModuleInfo>()
     private val disabledFile = File(moduleDir, "disabled.txt")
-    private val yaml = Yaml()
+    val yaml = Yaml()
 
-    fun loadModules(
-        configManager: ConfigManager
-    ): List<ModuleInfo> {
+    fun loadModules(): List<ModuleInfo> {
         val scanned = scanModules()
         if (scanned.isEmpty()) return emptyList()
 
@@ -68,7 +70,7 @@ class ModuleLoader(private val plugin: JavaPlugin, private val moduleDir: File) 
 
         for (module in finalModules) {
             try {
-                loadModuleScript(module, configManager)
+                loadModuleScript(module)
             } catch (e: Exception) {
                 plugin.logger.warning("模块 ${module.packageName} 加载失败: ${e.message}")
                 module.enabled = false
@@ -184,8 +186,7 @@ class ModuleLoader(private val plugin: JavaPlugin, private val moduleDir: File) 
         val disabled = loadDisabledList().toMutableSet()
         disabled.add(module.packageName)
         saveDisabledList(disabled)
-        module.enabled = false
-        plugin.logger.info("模块 ${module.packageName} 已禁用")
+        plugin.logger.info("模块 ${module.packageName} 已加入禁用名单，重启后生效")
         return true
     }
 
@@ -194,9 +195,8 @@ class ModuleLoader(private val plugin: JavaPlugin, private val moduleDir: File) 
         val disabled = loadDisabledList().toMutableSet()
         if (disabled.remove(module.packageName)) {
             saveDisabledList(disabled)
+            plugin.logger.info("模块 ${module.packageName} 已移出禁用名单，重启后生效")
         }
-        module.enabled = true
-        plugin.logger.info("模块 ${module.packageName} 已启用")
         return true
     }
 
@@ -223,6 +223,44 @@ class ModuleLoader(private val plugin: JavaPlugin, private val moduleDir: File) 
         return registry.values.map { it.manifest.author }.distinct().sorted()
     }
 
+    fun getModule(nameOrPkg: String): ModuleInfo? {
+        return findModule(nameOrPkg)
+    }
+
+    fun registerModule(module: ModuleInfo) {
+        registry[module.packageName] = module
+        nameIndex.computeIfAbsent(module.manifest.name) { mutableListOf() }.add(module)
+    }
+
+    fun unregisterModule(module: ModuleInfo) {
+        registry.remove(module.packageName)
+        nameIndex[module.manifest.name]?.remove(module)
+        if (nameIndex[module.manifest.name]?.isEmpty() == true) {
+            nameIndex.remove(module.manifest.name)
+        }
+    }
+
+    fun loadModule(module: ModuleInfo): Boolean {
+        configManager.copyResources(module)
+        loadModuleScript(module)
+        if (module.loaded) {
+            callOnEnable(module)
+            return true
+        }
+        return false
+    }
+
+    fun unloadModule(module: ModuleInfo) {
+        if (module.loaded) {
+            callOnDisable(module)
+            module.loaded = false
+            module.globals = null
+            module.onEnableFunc = null
+            module.onDisableFunc = null
+            module.exportedFunctions = null
+        }
+    }
+
     private var hasFatalError = false
 
     private fun scanModules(): List<ModuleInfo> {
@@ -244,7 +282,7 @@ class ModuleLoader(private val plugin: JavaPlugin, private val moduleDir: File) 
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun parseManifest(file: File): Manifest? {
+    fun parseManifest(file: File): Manifest? {
         return try {
             FileInputStream(file).use { input ->
                 val raw = yaml.load<Map<String, Any>>(input) ?: return null
@@ -453,8 +491,7 @@ class ModuleLoader(private val plugin: JavaPlugin, private val moduleDir: File) 
     }
 
     private fun loadModuleScript(
-        module: ModuleInfo,
-        configManager: ConfigManager
+        module: ModuleInfo
     ) {
         if (module.enabled) {
             configManager.copyResources(module)

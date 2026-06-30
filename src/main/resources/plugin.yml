@@ -6,9 +6,6 @@ commands:
   script:
     description: 运行或列出 MinecraftX Lua 脚本
     usage: /<command> run <name> | /<command> list
-  modlist:
-    description: 查看模块列表
-    usage: /<command> [filter <status|author> [args...]] | /<command> info <name|pack>
-  modmanager:
-    description: 管理模块启用禁用
-    usage: /<command> <disabled|enabled> <name|pack>
+  mpm:
+    description: 模块包管理
+    usage: /<command> <install|remove|uninstall|unpack|pack|packs|list|enabled|disabled> [args...]
