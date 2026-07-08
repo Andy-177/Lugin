@@ -1,6 +1,6 @@
 # Lugin
 
-> **原名 MinecraftX** — 因原名包含 "Minecraft"，为与 Mojang 完全切断关联，故更名为 Lugin（Lua + Plugin），寓意"以 Lua 驱动的插件框架"。
+> **原名 MinecraftX** — 因原名包含 "Minecraft"，为与 Mojang 完全切断关联，故更名为 Lugin（Lua + Plugin），寓意"以 Lua 驱动的插件框架"。此项目目前与mojang无任何关系，本项目为完全独立的作品。
 
 一个 Paper/Bukkit 插件，为 Minecraft 服务器提供 **Lua 脚本系统** 和 **模块化扩展框架**，并实现了完整的 **Java-Lua 桥接层**，让 Lua 脚本能够无缝使用 Java 全部特性。
 
