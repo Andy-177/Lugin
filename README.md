@@ -1,5 +1,7 @@
 # MinecraftX
 
+> 注意：此插件与Mojang之间无任何关系，此插件为Andy-177的作品，使用MinecraftX表达的意思是此插件能快速对原版Minecraft进行扩展，无需进行繁琐的开发，而不是借用Minecraft这个标识获取影响力。
+
 一个 Paper/Bukkit 插件，为 Minecraft 服务器提供 **Lua 脚本系统** 和 **模块化扩展框架**，并实现了完整的 **Java-Lua 桥接层**，让 Lua 脚本能够无缝使用 Java 全部特性。
 
 ---
