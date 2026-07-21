@@ -1,6 +1,6 @@
 # MinecraftX
 
-> 注意：此插件与Mojang之间无任何关系，此插件为Andy-177的作品。
+> 注意：此插件与Mojang之间无任何关系，此插件为Andy-177的作品，如果侵权请及时在issues告知，我们会尽快更改项目名字
 
 一个 Paper/Bukkit 插件，为 Minecraft 服务器提供 **Lua 脚本系统** 和 **模块化扩展框架**，并实现了完整的 **Java-Lua 桥接层**，让 Lua 脚本能够无缝使用 Java 全部特性。
 
